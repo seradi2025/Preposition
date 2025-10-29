@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preposition Test</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f3f6fb; text-align:center; margin:0; padding:20px; }
+  .container { max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  button { background:#007bff; color:#fff; border:none; border-radius:6px; padding:10px 15px; margin:5px; cursor:pointer; }
+  button:hover { background:#0056b3; }
+  .option { display:block; margin:8px 0; padding:10px; border:1px solid #ddd; border-radius:6px; cursor:pointer; }
+  .option:hover { background:#eaf3ff; }
+  .correct { background:#c8f7c5; }
+  .wrong { background:#f7c5c5; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Preposition Test</h1>
+  <div id="intro">
+    <p>You will get 10 random questions. Each has 30 seconds.</p>
+    <button onclick="startTest()">Start Test</button>
+  </div>
+
+  <div id="quiz" class="hidden">
+    <p id="timer" style="color:red;font-weight:bold;">Time left: 30s</p>
+    <p id="questionText" class="question"></p>
+    <div id="options"></div>
+    <div style="margin-top:10px;">
+      <button onclick="prevQuestion()">Prev</button>
+      <button onclick="nextQuestion()">Next</button>
+    </div>
+  </div>
+
+  <div id="result" class="hidden">
+    <h2>Test Complete ✅</h2>
+    <p id="score"></p>
+    <div id="review"></div>
+    <button onclick="location.reload()">Restart</button>
+  </div>
+</div>
+
+<script>
+const BANK = [
+  {q:"He sat ___ the chair.", opts:["in","on","at","by"], a:"on", exp:"We sit 'on' a chair."},
+  {q:"She arrived ___ the airport.", opts:["in","on","at","to"], a:"at", exp:"Use 'at' for places."},
+  {q:"The cat is hiding ___ the bed.", opts:["in","on","under","behind"], a:"under", exp:"Use 'under' for below something."},
+  {q:"We met ___ Monday.", opts:["in","at","on","by"], a:"on", exp:"Use 'on' for days."},
+  {q:"They walked ___ the park.", opts:["through","between","across","along"], a:"through", exp:"Use 'through' when moving inside an area."},
+  {q:"She lives ___ London.", opts:["in","at","on","by"], a:"in", exp:"Use 'in' for cities or countries."},
+  {q:"He stood ___ the door.", opts:["on","at","by","under"], a:"at", exp:"Use 'at' for a fixed location."},
+  {q:"The picture is ___ the wall.", opts:["on","in","over","above"], a:"on", exp:"Use 'on' for surfaces."},
+  {q:"He jumped ___ the pool.", opts:["into","onto","in","to"], a:"into", exp:"Use 'into' for movement inside."},
+  {q:"We’ll meet ___ 5 PM.", opts:["on","in","at","by"], a:"at", exp:"Use 'at' for exact times."},
+  {q:"She sat ___ the tree.", opts:["under","above","over","in"], a:"under", exp:"We sit 'under' a tree."},
+  {q:"The book is ___ the table.", opts:["in","on","under","by"], a:"on", exp:"Books rest 'on' a table."},
+  {q:"I walked ___ the river.", opts:["along","across","through","under"], a:"along", exp:"Use 'along' for beside something."}
+];
+
+let questions = [];
+let current = 0;
+let selected = {};
+let timer = 30;
+let countdown;
+
+function shuffle(arr) { return [...arr].sort(()=>Math.random()-0.5); }
+
+function startTest() {
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  questions = shuffle(BANK).slice(0,10).map(q=>({...q, opts:shuffle(q.opts)}));
+  current = 0;
+  timer = 30;
+  showQuestion();
+  countdown = setInterval(()=>{ 
+    timer--; 
+    document.getElementById('timer').innerText = `Time left: ${timer}s`;
+    if(timer<=0){ nextQuestion(); } 
+  },1000);
+}
+
+function showQuestion() {
+  const q = questions[current];
+  document.getElementById('questionText').innerText = (current+1)+". "+q.q;
+  const optDiv = document.getElementById('options');
+  optDiv.innerHTML = "";
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('div');
+    btn.className = "option";
+    btn.innerText = opt;
+    btn.onclick = ()=>{ selected[current] = opt; nextQuestion(); };
+    optDiv.appendChild(btn);
+  });
+  document.getElementById('timer').innerText = `Time left: ${timer}s`;
+}
+
+function nextQuestion() {
+  if(current < questions.length-1){
+    current++;
+    timer = 30;
+    showQuestion();
+  } else {
+    clearInterval(countdown);
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if(current > 0) current--;
+  showQuestion();
+}
+
+function showResult() {
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  let correct = 0;
+  const review = document.getElementById('review');
+  review.innerHTML = "";
+  questions.forEach((q,i)=>{
+    const user = selected[i] || "Not answered";
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <p><b>${i+1}. ${q.q}</b><br>
+      Your answer: <span class="${user===q.a?'correct':'wrong'}">${user}</span><br>
+      Correct: <b>${q.a}</b><br>
+      <i>${q.exp}</i></p><hr>`;
+    review.appendChild(div);
+    if(user === q.a) correct++;
+  });
+  document.getElementById('score').innerText = `Your Score: ${correct} / ${questions.length}`;
+}
+</script>
+</body>
+</html>
